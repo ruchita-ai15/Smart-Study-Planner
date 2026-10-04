@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Topic - Smart Study Planner{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-8 col-lg-6">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.subjects_list') }}">Subjects</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.topics_list', subject_id=topic.subject_id) }}">{{ topic.subject.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit {{ topic.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <h2 class="h4 fw-bold text-dark mb-1">Edit Topic</h2>
+            <p class="text-muted small mb-4">Update topic details, estimated study hours, or mastery status.</p>
+
+            <form action="{{ url_for('main.edit_topic', topic_id=topic.id) }}" method="POST">
+                <div class="mb-3">
+                    <label for="subject_id" class="form-label fw-semibold text-dark">Subject <span class="text-danger">*</span></label>
+                    <select class="form-select rounded-3" id="subject_id" name="subject_id" required>
+                        {% for subj in subjects %}
+                            <option value="{{ subj.id }}" {% if topic.subject_id == subj.id %}selected{% endif %}>
+                                {{ subj.name }} (Exam: {{ subj.exam_date.strftime('%b %d') }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="name" class="form-label fw-semibold text-dark">Topic Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control rounded-3" id="name" name="name" value="{{ topic.name }}" required autofocus>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="difficulty" class="form-label fw-semibold text-dark">Difficulty Level</label>
+                        <select class="form-select rounded-3" id="difficulty" name="difficulty" required>
+                            <option value="Easy" {% if topic.difficulty == 'Easy' %}selected{% endif %}>Easy (Priority 1)</option>
+                            <option value="Medium" {% if topic.difficulty == 'Medium' %}selected{% endif %}>Medium (Priority 2)</option>
+                            <option value="Hard" {% if topic.difficulty == 'Hard' %}selected{% endif %}>Hard (Priority 3 - Early Scheduling)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="estimated_hours" class="form-label fw-semibold text-dark">Estimated Hours <span class="text-danger">*</span></label>
+                        <input type="number" step="0.5" min="0.5" max="40" class="form-control rounded-3" id="estimated_hours" name="estimated_hours" value="{{ topic.estimated_hours }}" required>
+                    </div>
+                </div>
+
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="completed" name="completed" {% if topic.completed %}checked{% endif %}>
+                    <label class="form-check-label text-dark fw-medium" for="completed">
+                        Mark as Completed (Mastered)
+                    </label>
+                    <div class="form-text small">Completed topics will not be scheduled in newly generated study plans.</div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('main.topics_list', subject_id=topic.subject_id) }}" class="btn btn-outline-secondary rounded-3 px-3">Cancel</a>
+                    <button type="submit" class="btn btn-primary rounded-3 px-4 fw-medium">
+                        <i class="bi bi-check-lg me-1"></i> Update Topic
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

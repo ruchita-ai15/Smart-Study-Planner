@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Study Planner{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 my-4">
+    <div>
+        <h1 class="h3 fw-bold text-dark mb-1">SMART STUDY PLANNER</h1>
+        <p class="text-muted mb-0">Plan Smart. Study Better. Keep track of your topics, exams, and daily schedule.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('main.add_subject') }}" class="btn btn-outline-primary btn-sm rounded-3">
+            <i class="bi bi-journal-plus me-1"></i> Add Subject
+        </a>
+        <a href="{{ url_for('main.add_topic') }}" class="btn btn-outline-secondary btn-sm rounded-3">
+            <i class="bi bi-list-plus me-1"></i> Add Topic
+        </a>
+        <a href="{{ url_for('main.generate_plan') }}" class="btn btn-primary btn-sm rounded-3">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Generate Plan
+        </a>
+    </div>
+</div>
+
+<!-- Overview Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 stat-card bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-medium text-uppercase">Subjects</span>
+                <span class="stat-icon-wrapper bg-primary-subtle text-primary">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </span>
+            </div>
+            <div class="h2 fw-bold text-dark mb-0">{{ total_subjects }}</div>
+            <div class="text-muted small mt-1">Enrolled courses</div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 stat-card bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-medium text-uppercase">Total Topics</span>
+                <span class="stat-icon-wrapper bg-info-subtle text-info">
+                    <i class="bi bi-list-check"></i>
+                </span>
+            </div>
+            <div class="h2 fw-bold text-dark mb-0">{{ total_topics }}</div>
+            <div class="text-muted small mt-1">{{ pending_topics }} pending</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 stat-card bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-medium text-uppercase">Completed</span>
+                <span class="stat-icon-wrapper bg-success-subtle text-success">
+                    <i class="bi bi-check2-circle"></i>
+                </span>
+            </div>
+            <div class="h2 fw-bold text-success mb-0">{{ completed_topics }}</div>
+            <div class="text-muted small mt-1">Topics mastered</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 stat-card bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-medium text-uppercase">Overall Progress</span>
+                <span class="stat-icon-wrapper bg-purple-subtle text-purple">
+                    <i class="bi bi-speedometer2"></i>
+                </span>
+            </div>
+            <div class="h2 fw-bold text-primary mb-0">{{ overall_progress }}%</div>
+            <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ overall_progress }}%;" aria-valuenow="{{ overall_progress }}" aria-valuemin="0" aria-valuemits="100"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Section: Today's Tasks & Upcoming Exams -->
+<div class="row g-4 mb-4">
+    <!-- Today's Tasks -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-calendar2-day text-primary me-2"></i> Today's Study Tasks
+                    </h5>
+                    <span class="text-muted small">{{ today.strftime('%A, %B %d, %Y') }}</span>
+                </div>
+                <a href="{{ url_for('main.study_plan') }}" class="btn btn-sm btn-link text-decoration-none">View Full Plan &rarr;</a>
+            </div>
+
+            <div class="card-body px-4 pb-4">
+                {% if today_tasks %}
+                    <div class="list-group list-group-flush gap-2">
+                        {% for task in today_tasks %}
+                            <div class="list-group-item border rounded-3 p-3 d-flex align-items-center justify-content-between {% if task.completed %}bg-light opacity-75{% endif %}">
+                                <div class="d-flex align-items-center gap-3">
+                                    <form action="{{ url_for('main.toggle_plan_task', plan_id=task.id) }}" method="POST" class="m-0">
+                                        <button type="submit" class="btn btn-sm p-0 text-decoration-none border-0 bg-transparent" title="Toggle status">
+                                            {% if task.completed %}
+                                                <i class="bi bi-check-square-fill fs-4 text-success"></i>
+                                            {% else %}
+                                                <i class="bi bi-square fs-4 text-secondary"></i>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    <div>
+                                        <div class="fw-semibold {% if task.completed %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}">
+                                            {{ task.topic.name }}
+                                        </div>
+                                        <div class="small text-muted d-flex align-items-center gap-2 mt-1">
+                                            <span>{{ task.topic.subject.name }}</span>
+                                            <span>&middot;</span>
+                                            <span>{{ task.planned_hours }} hr{% if task.planned_hours != 1 %}s{% endif %}</span>
+                                            <span>&middot;</span>
+                                            <span class="badge {% if task.topic.difficulty == 'Hard' %}bg-danger-subtle text-danger{% elif task.topic.difficulty == 'Medium' %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-2 py-0.5">
+                                                {{ task.topic.difficulty }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="badge {% if task.completed %}bg-success text-white{% else %}bg-light text-secondary border{% endif %}">
+                                    {% if task.completed %}Done{% else %}Pending{% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="display-6 text-muted mb-2"><i class="bi bi-cup-hot"></i></div>
+                        <h6 class="fw-semibold text-dark">No tasks scheduled for today!</h6>
+                        <p class="text-muted small mb-3">You're all caught up or haven't generated your study plan yet.</p>
+                        <a href="{{ url_for('main.generate_plan') }}" class="btn btn-sm btn-primary rounded-3">
+                            <i class="bi bi-lightning-charge me-1"></i> Generate Plan Now
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Exams -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-clock-history text-danger me-2"></i> Upcoming Exams
+                    </h5>
+                    <span class="text-muted small">Stay ahead of your target deadlines</span>
+                </div>
+                <a href="{{ url_for('main.subjects_list') }}" class="btn btn-sm btn-link text-decoration-none">Manage &rarr;</a>
+            </div>
+
+            <div class="card-body px-4 pb-4">
+                {% if upcoming_exams %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for subj in upcoming_exams %}
+                            {% set days_left = subj.days_until_exam %}
+                            <div class="p-3 border rounded-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">{{ subj.name }}</h6>
+                                    <div class="small text-muted">
+                                        <i class="bi bi-calendar-event me-1"></i> {{ subj.exam_date.strftime('%b %d, %Y') }}
+                                        &middot; {{ subj.total_topics }} topics
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    {% if days_left == 0 %}
+                                        <span class="badge bg-danger text-white px-2 py-1">TODAY!</span>
+                                    {% elif days_left < 7 %}
+                                        <span class="badge bg-danger-subtle text-danger px-2 py-1 fw-bold">{{ days_left }} days left</span>
+                                    {% elif days_left < 15 %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis px-2 py-1">{{ days_left }} days left</span>
+                                    {% else %}
+                                        <span class="badge bg-info-subtle text-info-emphasis px-2 py-1">{{ days_left }} days left</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="display-6 text-muted mb-2"><i class="bi bi-calendar-plus"></i></div>
+                        <h6 class="fw-semibold text-dark">No upcoming exams</h6>
+                        <p class="text-muted small mb-3">Add your subjects and their exam dates to get countdowns.</p>
+                        <a href="{{ url_for('main.add_subject') }}" class="btn btn-sm btn-outline-primary rounded-3">
+                            <i class="bi bi-plus-circle me-1"></i> Add Subject
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subject-Wise Progress Section -->
+<div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-dark mb-0">
+            <i class="bi bi-bar-chart-line text-purple me-2"></i> Subject-Wise Progress
+        </h5>
+        <a href="{{ url_for('main.subjects_list') }}" class="btn btn-sm btn-outline-secondary rounded-3">
+            View All Subjects
+        </a>
+    </div>
+
+    {% if subjects %}
+        <div class="row g-3">
+            {% for subj in subjects %}
+                <div class="col-md-4">
+                    <div class="border rounded-3 p-3 h-100 bg-body-tertiary">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0 text-truncate" title="{{ subj.name }}">{{ subj.name }}</h6>
+                            <span class="small fw-semibold text-primary">{{ subj.progress_percent }}%</span>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar {% if subj.progress_percent == 100 %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ subj.progress_percent }}%;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>{{ subj.completed_topics }}/{{ subj.total_topics }} topics</span>
+                            <a href="{{ url_for('main.topics_list', subject_id=subj.id) }}" class="text-decoration-none">Topics &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted small mb-0">No subjects created yet. Click "Load Sample Data" in the top bar to get started immediately!</p>
+    {% endif %}
+</div>
+{% endblock %}

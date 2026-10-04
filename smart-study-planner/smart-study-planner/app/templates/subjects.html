@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Subjects - Smart Study Planner{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 my-4">
+    <div>
+        <h1 class="h3 fw-bold text-dark mb-1">Subjects</h1>
+        <p class="text-muted mb-0">Manage your enrolled courses, target exam deadlines, and study modules.</p>
+    </div>
+    <a href="{{ url_for('main.add_subject') }}" class="btn btn-primary rounded-3">
+        <i class="bi bi-plus-lg me-1"></i> Add Subject
+    </a>
+</div>
+
+{% if subjects %}
+    <div class="row g-4">
+        {% for subject in subjects %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100 bg-white d-flex flex-column">
+                    <div class="card-body p-4 flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <h5 class="fw-bold text-dark mb-0">{{ subject.name }}</h5>
+                            {% set days_left = subject.days_until_exam %}
+                            {% if days_left < 0 %}
+                                <span class="badge bg-secondary">Passed</span>
+                            {% elif days_left == 0 %}
+                                <span class="badge bg-danger">Exam Today</span>
+                            {% elif days_left < 7 %}
+                                <span class="badge bg-danger-subtle text-danger fw-bold">{{ days_left }}d left</span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary">{{ days_left }}d left</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-calendar3 me-1"></i> Exam: {{ subject.exam_date.strftime('%B %d, %Y') }}
+                        </div>
+
+                        {% if subject.description %}
+                            <p class="text-secondary small mb-3 text-truncate-2">{{ subject.description }}</p>
+                        {% endif %}
+
+                        <!-- Progress Bar -->
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span class="text-muted">Mastery Progress</span>
+                                <span class="fw-bold text-dark">{{ subject.progress_percent }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar {% if subject.progress_percent == 100 %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ subject.progress_percent }}%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-muted small mt-2">
+                            <span><i class="bi bi-collection me-1"></i> {{ subject.total_topics }} topics</span>
+                            <span><i class="bi bi-check2-circle text-success me-1"></i> {{ subject.completed_topics }} completed</span>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer Actions -->
+                    <div class="card-footer bg-light border-0 px-4 py-3 rounded-bottom-4 d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('main.topics_list', subject_id=subject.id) }}" class="btn btn-sm btn-outline-primary rounded-3 fw-medium">
+                            <i class="bi bi-list-ul me-1"></i> View Topics
+                        </a>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('main.edit_subject', subject_id=subject.id) }}" class="btn btn-sm btn-light border rounded-3" title="Edit subject">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ url_for('main.delete_subject', subject_id=subject.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this subject and all its topics?');" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" title="Delete subject">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-4">
+        <div class="display-5 text-muted mb-3"><i class="bi bi-journal-x"></i></div>
+        <h4 class="fw-bold text-dark mb-2">No subjects added yet</h4>
+        <p class="text-muted mb-4 max-w-md mx-auto">Start by creating your first subject or course, or click "Load Sample Data" to load CS coursework.</p>
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{{ url_for('main.add_subject') }}" class="btn btn-primary rounded-3 px-4">
+                <i class="bi bi-plus-lg me-1"></i> Add Your First Subject
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

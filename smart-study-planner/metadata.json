@@ -1,0 +1,6 @@
+{
+  "name": "Smart Study Planner",
+  "description": "A beginner-friendly web application to help students create and manage personalized study plans based on subjects, difficulty, exam dates, and available daily study hours with Docker and Flask.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

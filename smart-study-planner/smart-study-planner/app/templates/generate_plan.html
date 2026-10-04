@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Plan - Smart Study Planner{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon-wrapper bg-primary text-white fs-4 p-2 rounded-3">
+                    <i class="bi bi-cpu-fill"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold text-dark mb-0">Generate Study Plan</h2>
+                    <p class="text-muted small mb-0">Automated rule-based scheduling for pending topics.</p>
+                </div>
+            </div>
+
+            <form action="{{ url_for('main.generate_plan') }}" method="POST">
+                <div class="mb-3">
+                    <label for="daily_hours" class="form-label fw-semibold text-dark">
+                        Available Study Hours Per Day <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="number" step="0.5" min="0.5" max="16" class="form-control rounded-start-3" id="daily_hours" name="daily_hours" value="3.0" required autofocus>
+                        <span class="input-group-text rounded-end-3 bg-light text-muted">hours / day</span>
+                    </div>
+                    <div class="form-text small">How many hours can you realistically commit each day?</div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="start_date" class="form-label fw-semibold text-dark">
+                        Start Date <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" class="form-control rounded-3" id="start_date" name="start_date" value="{{ default_date }}" required>
+                    <div class="form-text small">Date from which sessions should start being assigned.</div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary rounded-3 py-2 fw-semibold">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Generate My Study Schedule
+                    </button>
+                    <a href="{{ url_for('main.study_plan') }}" class="btn btn-outline-secondary rounded-3">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- How the Algorithm Works Card -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-info-circle text-primary me-2"></i> How the Scheduling Algorithm Works
+            </h6>
+            <ul class="text-muted small ps-3 mb-0 d-flex flex-column gap-2">
+                <li>
+                    <strong>Difficulty Weighting:</strong> Hard topics (weight 3) are scheduled earlier than Medium (2) and Easy (1) to tackle complex concepts first.
+                </li>
+                <li>
+                    <strong>Exam Urgency:</strong> Topics belonging to subjects with upcoming target exam dates receive higher priority.
+                </li>
+                <li>
+                    <strong>Workload Balancing:</strong> Daily hours are strictly capped at your available hours to prevent burnout.
+                </li>
+                <li>
+                    <strong>Deadline Protection:</strong> Topics are scheduled before their subject's exam date; warnings are displayed if additional daily study time is needed.
+                </li>
+                <li>
+                    <strong>Completed Topics Excluded:</strong> Any topic already marked completed is automatically omitted from new schedules.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
